@@ -1,7 +1,7 @@
 //HTML canvas stuff
 var c = document.getElementById("play-area");
 var ctx = c.getContext("2d");
-
+//ctx.translate(0.5, 0.5);	//get rid of blur
 
 //global variables
 var WIDTH = 350;
@@ -200,19 +200,6 @@ function tetris_game(){
 	//define tetris board
 	this.board = [];
 	
-	//method to draw a new board.
-	this.init = function(){
-		for(var i=0;i<ROWS;i++)
-		{
-			//create empty row
-			this.board[i] = [];
-			for(var j=0;j<COLS;j++)
-			{
-				//initialize each tile on the board to 0.
-				this.board[i][j] = 0;
-			}
-		}
-	}
 
 	//piece is represented as simple object with x position, y position, and shape properties.
 	this.currPiece = {
@@ -232,7 +219,25 @@ function tetris_game(){
 	this.startX = 3;
 	this.startY = -1;
 	
+	
+	
 	//various methods//
+	
+	//method to draw a new board.
+	this.init = function(){
+		for(var i=0;i<ROWS;i++)
+		{
+			//create empty row
+			this.board[i] = [];
+			for(var j=0;j<COLS;j++)
+			{
+				//initialize each tile on the board to 0.
+				this.board[i][j] = 0;
+			}
+		}
+		drawNext(this.nextPiece.shape);
+		drawScore(this.score);
+	}
 
 	
 	this.tick = function(){
@@ -265,13 +270,17 @@ function tetris_game(){
 			tempPiece.y = 0;
 			tempPiece.shape = newShape();
 			
+			//next piece, update score and next piece
 			this.nextPiece = tempPiece;
 			drawBoard(this.board, this.currPiece);
+			drawNext(this.nextPiece.shape);
+			drawScore(this.score);
 		}
 		else
 		{
 			this.currPiece.y++;	//if no collision, move the piece down.
 			drawBoard(this.board, this.currPiece);
+			drawScore(this.score);
 		}
 	}
 	
@@ -308,7 +317,6 @@ function newShape(){
 	var shape = pieces[random];
 	return shape;
 }
-
 
 //Add piece to board.  Recreates the board, adding in the new piece at its X and Y location.
 function addPiece(board, piece){
@@ -387,7 +395,7 @@ var testBoard = [
  *	GRAPHICS
  */
  
-var colors = ["red",  "violet", "blue", "yellow", "green", "orange", "pink"];
+var colors = ["red",  "violet", "blue", "yellow", "green", "orange", "cyan"];
 
 function drawBoard(board, piece){
 
@@ -404,13 +412,16 @@ function drawBoard(board, piece){
 				ctx.fillStyle = colors[board[y][x]-1];
 				ctx.fillRect(BLOCK_WIDTH * x, BLOCK_HEIGHT * y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1) //(x, y, width, height)
 				ctx.strokeRect(BLOCK_WIDTH * x, BLOCK_HEIGHT * y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
+
+
 			} else	//else draw empty grid space
 			{
 				ctx.strokeStyle = 'grey';
-				ctx.lineWidth = '1';
-				ctx.fillStyle = 'white';
+				ctx.lineWidth = '0.2';
+				ctx.fillStyle = '#ffffff';
 				ctx.fillRect(BLOCK_WIDTH * x, BLOCK_HEIGHT * y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1) //(x, y, width, height)
 				ctx.strokeRect(BLOCK_WIDTH * x, BLOCK_HEIGHT * y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
+
 			}
 		}	
 	}
@@ -422,11 +433,11 @@ function drawBoard(board, piece){
 		{
 			if(piece.shape[y][x])
 			{
-				ctx.strokeStyle = 'black';
+				ctx.strokeStyle = "black";
 				ctx.lineWidth = '2';
 				ctx.fillStyle = colors[piece.shape[y][x]	-1];
 				ctx.fillRect(BLOCK_WIDTH * x + BLOCK_WIDTH * piece.x, BLOCK_HEIGHT * y +  BLOCK_HEIGHT * piece.y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
-				ctx.strokeRect(BLOCK_WIDTH * x + BLOCK_WIDTH * piece.x, BLOCK_HEIGHT * y +  BLOCK_HEIGHT * piece.y, BLOCK_WIDTH - 1, BLOCK_HEIGHT -1)
+				ctx.strokeRect(BLOCK_WIDTH * x + BLOCK_WIDTH * piece.x, BLOCK_HEIGHT * y +  BLOCK_HEIGHT * piece.y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
 			}
 			/*
 			else //TODO - highlight for debug purposes - remove later.
@@ -439,10 +450,69 @@ function drawBoard(board, piece){
 	}
 }
 
+//TODO - make responsive?  Rebuild as SVG?
+function drawDashboard(){
+	
+	//draw dashboard
+	ctx.strokeStyle = "black";
+	ctx.lineWidth = '2';
+	ctx.beginPath();
+	ctx.moveTo(WIDTH, 0);
+	ctx.lineTo(WIDTH, HEIGHT);
+	ctx.stroke();
+	
+	
+	//draw next box
+	ctx.strokeStyle = "black";
+	ctx.rect(WIDTH+20.5,20.5,BLOCK_WIDTH*2,BLOCK_HEIGHT*2);
+	ctx.fillStyle = "#aaaaaa"
+	ctx.fillText("NEXT", WIDTH+60.5, 14.5);
+	
+	//draw score box
+	ctx.rect(WIDTH+20.5,150.5,110.5,40.5);
+	ctx.fillStyle = "#aaaaaa"
+	ctx.fillText("SCORE", WIDTH+60.5, 144.5);
+	ctx.stroke();
+}
+
+function drawNext(shape){
+	for(var x = 0; x < shape[0].length; x++)
+	{
+		for(var y = 0; y < shape.length; y++)
+		{
+			if(shape[y][x])
+			{
+				ctx.strokeStyle = "black";
+				ctx.lineWidth = '2';
+				ctx.fillStyle = colors[shape[y][x]-1];
+				ctx.fillRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2) - 1, (BLOCK_HEIGHT/2) - 1);
+				ctx.strokeRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2)  - 1, (BLOCK_HEIGHT/2) - 1);
+			}
+			else //TODO - highlight for debug purposes - remove later.
+			{
+				ctx.strokeStyle = "white"
+				ctx.fillStyle = "white"
+				ctx.fillRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2) - 1, (BLOCK_HEIGHT/2) - 1);
+				ctx.strokeRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2)  - 1, (BLOCK_HEIGHT/2) - 1);
+			}
+		}
+	}	
+}
+
+function drawScore(score){
+	ctx.fillStyle = "black";
+	ctx.fillText(score, WIDTH+60.5, 170.5);
+	ctx.stroke();	
+}
+
+/*
+ *	Start game
+ */
 function startGame(){
 	main_game = new tetris_game();
 	main_game.init();
 	drawBoard(main_game.board, main_game.currPiece);
+	drawDashboard();
 	
 	//game loop
 	window.setInterval(function(){
