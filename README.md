@@ -1,2 +1,2 @@
 # tetris.js
-lightweight JS tetris clone
+Pure javascript Tetris clone.
