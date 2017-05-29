@@ -4,8 +4,8 @@ var ctx = c.getContext("2d");
 //ctx.translate(0.5, 0.5);	//get rid of blur
 
 //global variables
-var WIDTH = 350;
-var HEIGHT = 700;
+var WIDTH = 300;
+var HEIGHT = 600;
 var ROWS = 20;	//standard tetris board
 var COLS = 10;	//standard tetris board
 var BLOCK_WIDTH = WIDTH / COLS
@@ -30,13 +30,13 @@ var pieces = [
 		[0,0,0,0],
 		[3,3,0,0],
 		[0,3,3,0],
-		[0,0,0,0]	
+		[0,0,0,0]
 	],
 	[
 		[0,0,0,0],
 		[0,4,0,0],
 		[0,4,0,0],
-		[0,4,4,0]	
+		[0,4,4,0]
 	],
 	[
 		[0,0,0,0],
@@ -48,13 +48,13 @@ var pieces = [
 		[0,6,0,0],
 		[0,6,0,0],
 		[0,6,0,0],
-		[0,6,0,0]	
+		[0,6,0,0]
 	],
 	[
 		[0,0,0,0],
 		[7,7,7,0],
 		[0,7,0,0],
-		[0,0,0,0]	
+		[0,0,0,0]
 	]
 ];
 
@@ -112,7 +112,7 @@ function control(e){
 			console.log("rotate right");
 			main_game.rotate("right");
 		}
-	}	
+	}
 }
 
 //check if the user's move is valid.
@@ -138,7 +138,7 @@ function validMove(x, y, rotation = false){
 	{
 		return true;
 	}
-	
+
 }
 
 function collision(board, piece){
@@ -154,7 +154,7 @@ function collision(board, piece){
 					return true;
 				  }
 			}
-		}		
+		}
 	}
 	//if none of the above checks pass, there's no collision.
 	return false;
@@ -196,10 +196,10 @@ function tetris_game(){
 	this.gameOver = false;
 	this.score = 0;
 	this.speed = 700;
-	
+
 	//define tetris board
 	this.board = [];
-	
+
 
 	//piece is represented as simple object with x position, y position, and shape properties.
 	this.currPiece = {
@@ -214,15 +214,15 @@ function tetris_game(){
 		y: 0,
 		shape: newShape()
 	}
-	
+
 	//start point for new pieces
 	this.startX = 3;
 	this.startY = -1;
-	
-	
-	
+
+
+
 	//various methods//
-	
+
 	//method to draw a new board.
 	this.init = function(){
 		for(var i=0;i<ROWS;i++)
@@ -239,14 +239,14 @@ function tetris_game(){
 		drawScore(this.score);
 	}
 
-	
+
 	this.tick = function(){
 		if(this.paused || this.gameOver)
 		{
 			//do not tick if the game is paused, or if the game is over.
 			return false;
 		}
-		
+
 		//placeholder for deep copy.  need to check if y+1 will have a collision without
 		//altering the original piece object.
 		var tempPiece = {
@@ -254,22 +254,22 @@ function tetris_game(){
 			y: this.currPiece.y + 1,
 			shape: this.currPiece.shape
 		};
-		
+
 		if(collision(this.board, tempPiece))
 		{
 			//write piece to board
 			addPiece(this.board, this.currPiece);
 			var multiplier = destroyRows(this.board);		//destroys rows in place on the board, and returns a multiplier based on # destroyed.
 			this.score += (1 + (multiplier * 100));
-			
+
 			//get next piece
 			this.currPiece = this.nextPiece;
-			
+
 			//reuse placeholder piece and make it the next piece.
 			tempPiece.x = 3;	//TODO - replace with calculation
 			tempPiece.y = 0;
 			tempPiece.shape = newShape();
-			
+
 			//next piece, update score and next piece
 			this.nextPiece = tempPiece;
 			drawBoard(this.board, this.currPiece);
@@ -280,25 +280,24 @@ function tetris_game(){
 		{
 			this.currPiece.y++;	//if no collision, move the piece down.
 			drawBoard(this.board, this.currPiece);
-			drawScore(this.score);
 		}
 	}
-	
+
 	/*
 	 *	CONTROL METHODS
-	 */ 
-	
+	 */
+
 	this.move = function(x, y){
 		this.currPiece.y += y;
 		this.currPiece.x += x;
 		drawBoard(this.board, this.currPiece);
 	}
-	
+
 	this.rotate = function(direction){
 		this.currPiece.shape = rotate(this.currPiece.shape, direction);
 		drawBoard(this.board, this.currPiece);
 	}
-	
+
 	this.togglePaused = function(){
 		this.paused = !this.paused;
 	}
@@ -341,16 +340,16 @@ function addPiece(board, piece){
 
 //destroy completed rows on a designated board (in place) and return a score multiplier.
 function destroyRows(board){
-	var multiplier = 1;
-	
+	var multiplier = 0;
+
 	for(var i = ROWS-1; i >= 0; i--){			//go through each row
 		while(!board[i].includes(0))			//if row is complete
 		{
-			multiplier *= 2;					//double multiplier
+			multiplier = (multiplier == 0) ? 1 : multiplier *= 2;					//double multiplier
 			for(var j = i; j>=0; j--){		//shift every row down
 				if(j != 0)
 				{
-					board[j] = board[j-1];		
+					board[j] = board[j-1];
 				}
 				else
 				{
@@ -358,9 +357,9 @@ function destroyRows(board){
 				}
 			}
 		}
-		
+
 	}
-	
+
 	return multiplier;
 }
 
@@ -394,7 +393,7 @@ var testBoard = [
 /*
  *	GRAPHICS
  */
- 
+
 var colors = ["red",  "violet", "blue", "yellow", "green", "orange", "cyan"];
 
 function drawBoard(board, piece){
@@ -416,16 +415,16 @@ function drawBoard(board, piece){
 
 			} else	//else draw empty grid space
 			{
-				ctx.strokeStyle = 'grey';
+				ctx.strokeStyle = '#adadad';
 				ctx.lineWidth = '0.2';
 				ctx.fillStyle = '#ffffff';
 				ctx.fillRect(BLOCK_WIDTH * x, BLOCK_HEIGHT * y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1) //(x, y, width, height)
 				ctx.strokeRect(BLOCK_WIDTH * x, BLOCK_HEIGHT * y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
 
 			}
-		}	
+		}
 	}
-	
+
 	//draw moving piece
 	for(var x = 0; x < piece.shape[0].length; x++)
 	{
@@ -452,7 +451,7 @@ function drawBoard(board, piece){
 
 //TODO - make responsive?  Rebuild as SVG?
 function drawDashboard(){
-	
+
 	//draw dashboard
 	ctx.strokeStyle = "black";
 	ctx.lineWidth = '2';
@@ -460,14 +459,14 @@ function drawDashboard(){
 	ctx.moveTo(WIDTH, 0);
 	ctx.lineTo(WIDTH, HEIGHT);
 	ctx.stroke();
-	
-	
+
+
 	//draw next box
 	ctx.strokeStyle = "black";
-	ctx.rect(WIDTH+20.5,20.5,BLOCK_WIDTH*2,BLOCK_HEIGHT*2);
+	ctx.rect(WIDTH+49.5,30.5,BLOCK_WIDTH*2,BLOCK_HEIGHT*2 + 4);
 	ctx.fillStyle = "#aaaaaa"
-	ctx.fillText("NEXT", WIDTH+60.5, 14.5);
-	
+	ctx.fillText("NEXT", WIDTH+60.5, 22.5);
+
 	//draw score box
 	ctx.rect(WIDTH+20.5,150.5,110.5,40.5);
 	ctx.fillStyle = "#aaaaaa"
@@ -485,24 +484,31 @@ function drawNext(shape){
 				ctx.strokeStyle = "black";
 				ctx.lineWidth = '2';
 				ctx.fillStyle = colors[shape[y][x]-1];
-				ctx.fillRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2) - 1, (BLOCK_HEIGHT/2) - 1);
-				ctx.strokeRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2)  - 1, (BLOCK_HEIGHT/2) - 1);
+				ctx.fillRect(WIDTH+49.5 + (BLOCK_WIDTH/2) * x ,34.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2) - 1, (BLOCK_HEIGHT/2) - 1);
+				ctx.strokeRect(WIDTH+49.5 + (BLOCK_WIDTH/2) * x ,34.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2)  - 1, (BLOCK_HEIGHT/2) - 1);
 			}
 			else //TODO - highlight for debug purposes - remove later.
 			{
 				ctx.strokeStyle = "white"
 				ctx.fillStyle = "white"
-				ctx.fillRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2) - 1, (BLOCK_HEIGHT/2) - 1);
-				ctx.strokeRect(WIDTH+20.5 + (BLOCK_WIDTH/2) * x ,20.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2)  - 1, (BLOCK_HEIGHT/2) - 1);
+				ctx.fillRect(WIDTH+49.5 + (BLOCK_WIDTH/2) * x ,34.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2) - 1, (BLOCK_HEIGHT/2) - 1);
+				ctx.strokeRect(WIDTH+49.5 + (BLOCK_WIDTH/2) * x ,34.5 + (BLOCK_HEIGHT/2) * y, (BLOCK_WIDTH/2)  - 1, (BLOCK_HEIGHT/2) - 1);
 			}
 		}
-	}	
+	}
 }
 
 function drawScore(score){
+	ctx.fillStyle = "white";
+	ctx.strokeStyle = "white";
+	ctx.fillRect(WIDTH+50, 160.5, 60, 25);
+	ctx.strokeRect(WIDTH+50, 160.5, 60, 25);
+
 	ctx.fillStyle = "black";
-	ctx.fillText(score, WIDTH+60.5, 170.5);
-	ctx.stroke();	
+	ctx.strokeStyle = "black";
+	ctx.font="30px VT323";
+	ctx.fillText(score, WIDTH+60.5, 178.5);
+	ctx.stroke();
 }
 
 /*
@@ -513,7 +519,7 @@ function startGame(){
 	main_game.init();
 	drawBoard(main_game.board, main_game.currPiece);
 	drawDashboard();
-	
+
 	//game loop
 	window.setInterval(function(){
 		main_game.tick();
@@ -526,4 +532,3 @@ function printPiece(piece){
 		console.log(piece[i]);
 	}
 }
-
