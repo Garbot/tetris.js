@@ -74,14 +74,23 @@ function control(e){
 	if(e.keyCode == 80){
 		if(active && main_game.paused == false){
 			main_game.paused = true;
-			// Store the context and clear;
-			ctx.save();
-			ctx.clearRect(0, 0, c.width, c.height);
 
+			// Store the context and clear the board to prevent cheating
+			ctx.save();
+			ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+			//pause message
+			ctx.fillStyle = "black";
+			ctx.strokeStyle = "black";
+			ctx.font="50px VT323";
+			ctx.fillText("PAUSED", 100, HEIGHT/2);
 
 		} else if(active && main_game.paused){
+			//clear the pause message
+			ctx.clearRect(0, 0, WIDTH, HEIGHT);
 			main_game.paused = false;
-			// Restore the transform
+
+			// Restore the board.
 			ctx.restore();
 		} else {
 			startGame();
@@ -89,50 +98,52 @@ function control(e){
 	}
 
 	//only allow movement if main game is not paused
-	if(e.keyCode == 37 || e.keyCode == 65) //left
-	{
-
-		if(validMove(-1, 0))
+	if(main_game.paused == false){
+		if(e.keyCode == 37 || e.keyCode == 65) //left
 		{
-			main_game.move(-1, 0);
+
+			if(validMove(-1, 0))
+			{
+				main_game.move(-1, 0);
+			}
+
 		}
-
-	}
-	else if(e.keyCode == 39 || e.keyCode == 68) //right
-	{
-
-		if(validMove(1, 0))
+		else if(e.keyCode == 39 || e.keyCode == 68) //right
 		{
-			main_game.move(1, 0);
+
+			if(validMove(1, 0))
+			{
+				main_game.move(1, 0);
+			}
+
 		}
-
-	}
-	else if(e.keyCode == 40 || e.keyCode == 83) //down
-	{
-
-		if(validMove(0,1))	// 0,0 is top left for html canvas? or is that just SVG
+		else if(e.keyCode == 40 || e.keyCode == 83) //down
 		{
-			main_game.move(0, 1);
+
+			if(validMove(0,1))	// 0,0 is top left for html canvas? or is that just SVG
+			{
+				main_game.move(0, 1);
+			}
+
 		}
-
-	}
-	else if(e.keyCode == 32) //spacebar
-	{
-		console.log("drop");
-		//drop();	//TODO
-	}
-	else if(e.keyCode == 38 || e.keyCode == 74) //up/J
-	{
-		if(validMove(0,0,"left"))
+		else if(e.keyCode == 32) //spacebar
 		{
-			main_game.rotate("left");
+			console.log("drop");
+			//drop();	//TODO
 		}
-	}
-	else if(e.keyCode == 75) //K
-	{
-		if(validMove(0,0,"right"))
+		else if(e.keyCode == 38 || e.keyCode == 74) //up/J
 		{
-			main_game.rotate("right");
+			if(validMove(0,0,"left"))
+			{
+				main_game.rotate("left");
+			}
+		}
+		else if(e.keyCode == 75) //K
+		{
+			if(validMove(0,0,"right"))
+			{
+				main_game.rotate("right");
+			}
 		}
 	}
 }
@@ -469,13 +480,6 @@ function drawBoard(board, piece){
 				ctx.fillRect(BLOCK_WIDTH * x + BLOCK_WIDTH * piece.x, BLOCK_HEIGHT * y +  BLOCK_HEIGHT * piece.y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
 				ctx.strokeRect(BLOCK_WIDTH * x + BLOCK_WIDTH * piece.x, BLOCK_HEIGHT * y +  BLOCK_HEIGHT * piece.y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1)
 			}
-			/*
-			else //TODO - highlight for debug purposes - remove later.
-			{
-				ctx.fillStyle = "rgba(255, 235, 235, 0.5)";
-				ctx.fillRect(BLOCK_WIDTH * x + BLOCK_WIDTH * piece.x, BLOCK_HEIGHT * y +  BLOCK_HEIGHT * piece.y, BLOCK_WIDTH - 1, BLOCK_HEIGHT - 1);
-			}
-			*/
 		}
 	}
 }
@@ -490,7 +494,7 @@ function drawDashboard(){
 	ctx.moveTo(WIDTH, 0);
 	ctx.lineTo(WIDTH, HEIGHT);
 	ctx.stroke();
-
+	ctx.closePath();
 
 	//draw next box
 	ctx.strokeStyle = "black";
@@ -503,6 +507,7 @@ function drawDashboard(){
 	ctx.fillStyle = "#aaaaaa"
 	ctx.fillText("SCORE", WIDTH+60.5, 144.5);
 	ctx.stroke();
+
 }
 
 function drawNext(shape){
