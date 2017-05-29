@@ -2,4 +2,4 @@
 
 ![screenshot](tetris.png)
 
-Pure javascript Tetris clone.
+A Tetris clone made in pure javascript.
