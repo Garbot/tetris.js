@@ -11,6 +11,7 @@ var COLS = 10;	//standard tetris board
 var BLOCK_WIDTH = WIDTH / COLS
 var BLOCK_HEIGHT = HEIGHT / ROWS;
 var main_game;
+var active;
 
 //all possible piece shapes stored in array of 4x4 arrays.
 var pieces = [
@@ -68,29 +69,52 @@ window.addEventListener('keydown', control);
 //execute on keypress(arrows || ASDF)
 function control(e){
 	e.preventDefault();
+
+	//P
+	if(e.keyCode == 80){
+		if(active && main_game.paused == false){
+			main_game.paused = true;
+			// Store the context and clear;
+			ctx.save();
+			ctx.clearRect(0, 0, c.width, c.height);
+
+
+		} else if(active && main_game.paused){
+			main_game.paused = false;
+			// Restore the transform
+			ctx.restore();
+		} else {
+			startGame();
+		}
+	}
+
+	//only allow movement if main game is not paused
 	if(e.keyCode == 37 || e.keyCode == 65) //left
 	{
-		console.log("left");
+
 		if(validMove(-1, 0))
 		{
-			main_game.move(-1, 0);	//TODO
+			main_game.move(-1, 0);
 		}
+
 	}
 	else if(e.keyCode == 39 || e.keyCode == 68) //right
 	{
-		console.log("right");
+
 		if(validMove(1, 0))
 		{
-			main_game.move(1, 0);  //TODO
+			main_game.move(1, 0);
 		}
+
 	}
 	else if(e.keyCode == 40 || e.keyCode == 83) //down
 	{
-		console.log("down");
-		if(validMove(0,1))	//TODO - 0,0 is top left for html canvas? or is that just SVG
+
+		if(validMove(0,1))	// 0,0 is top left for html canvas? or is that just SVG
 		{
-			main_game.move(0, 1); //TODO
+			main_game.move(0, 1);
 		}
+
 	}
 	else if(e.keyCode == 32) //spacebar
 	{
@@ -101,7 +125,6 @@ function control(e){
 	{
 		if(validMove(0,0,"left"))
 		{
-			console.log("rotate left");
 			main_game.rotate("left");
 		}
 	}
@@ -109,7 +132,6 @@ function control(e){
 	{
 		if(validMove(0,0,"right"))
 		{
-			console.log("rotate right");
 			main_game.rotate("right");
 		}
 	}
@@ -258,16 +280,18 @@ function tetris_game(){
 		if(collision(this.board, tempPiece))
 		{
 			//write piece to board
-			addPiece(this.board, this.currPiece);
+			this.addPiece(this.board, this.currPiece);
 			var multiplier = destroyRows(this.board);		//destroys rows in place on the board, and returns a multiplier based on # destroyed.
 			this.score += (1 + (multiplier * 100));
+
+
 
 			//get next piece
 			this.currPiece = this.nextPiece;
 
 			//reuse placeholder piece and make it the next piece.
 			tempPiece.x = 3;	//TODO - replace with calculation
-			tempPiece.y = 0;
+			tempPiece.y = -1;
 			tempPiece.shape = newShape();
 
 			//next piece, update score and next piece
@@ -301,6 +325,32 @@ function tetris_game(){
 	this.togglePaused = function(){
 		this.paused = !this.paused;
 	}
+
+	//Add piece to board.  Recreates the board, adding in the new piece at its X and Y location.
+	this.addPiece = function (board, piece){
+		var newBoard = board;
+
+		//if y position is 0, player has lost
+		if(piece.y <= 0){
+			this.gameOver = true;
+			GameOver(this.score);
+		}
+
+		for(var i = 0; i < 4; i++)
+		{
+			for(var j = 0; j < 4; j++)
+			{
+				//if there's a block
+				if(piece.shape[i][j])
+				{
+					//i.e piece.shape[i][j] = 1 now instead of 0
+					newBoard[piece.y+i][piece.x+j] = piece.shape[i][j];
+				}
+			}
+		}
+
+		return newBoard;
+	}
 }
 
 
@@ -317,26 +367,7 @@ function newShape(){
 	return shape;
 }
 
-//Add piece to board.  Recreates the board, adding in the new piece at its X and Y location.
-function addPiece(board, piece){
-	var newBoard = board;
-	for(var i = 0; i < 4; i++)
-	{
-		for(var j = 0; j < 4; j++)
-		{
-			//if there's a block
-			if(piece.shape[i][j])
-			{
-				console.log(i, j);
-				console.log(piece.y+i, piece.x+j);
-				console.log(newBoard[piece.y+i][piece.x+j]);
-				//i.e piece.shape[i][j] = 1 now instead of 0
-				newBoard[piece.y+i][piece.x+j] = piece.shape[i][j];
-			}
-		}
-	}
-	return newBoard;
-}
+
 
 //destroy completed rows on a designated board (in place) and return a score multiplier.
 function destroyRows(board){
@@ -514,21 +545,43 @@ function drawScore(score){
 /*
  *	Start game
  */
+var gameTimer;
+
 function startGame(){
 	main_game = new tetris_game();
 	main_game.init();
+
+	active = true;
+
+	ctx.clearRect(0, 0, c.width, c.height);
 	drawBoard(main_game.board, main_game.currPiece);
 	drawDashboard();
 
 	//game loop
-	window.setInterval(function(){
+	gameTimer = window.setInterval(function(){
 		main_game.tick();
 	}, main_game.speed);
 }
 
-//for testing purposes only		//TODO - remove
-function printPiece(piece){
-	for(i=0;i<piece.length;i++){
-		console.log(piece[i]);
-	}
+function GameOver(score){
+	window.clearInterval(gameTimer);
+	active = false;
+	window.setTimeout(function(){
+		ctx.clearRect(0, 0, c.width, c.height);
+
+		ctx.fillStyle = "black";
+		ctx.strokeStyle = "black";
+		ctx.font="50px VT323";
+		ctx.fillText("YOU LOSE", 75, HEIGHT/2);
+
+		ctx.font="30px VT323";
+		ctx.fillText("score: " + score, 75, HEIGHT/2 + 30);
+		ctx.stroke();
+
+		ctx.font="30px VT323";
+		ctx.fillText("Press P to play again", 30, HEIGHT/2 + 60);
+		ctx.stroke();
+	}, 500);
+
+
 }
