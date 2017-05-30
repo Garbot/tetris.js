@@ -98,7 +98,7 @@ function control(e){
 	}
 
 	//only allow movement if main game is not paused
-	if(main_game.paused == false){
+	if(main_game.paused == false && main_game.gameOver == false){
 		if(e.keyCode == 37 || e.keyCode == 65) //left
 		{
 
